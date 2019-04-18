@@ -109,12 +109,18 @@ def _add_deploy_sub_parser(subparsers, sub_parser_name, sub_parser_help):
     parser_prepare.add_argument('--force', action='store_true',
                                 help='Overwrite any previous generated files/directories (.e.g deployed dir)')
 
+    parser_prepare.add_argument('--test-mode', default=False, required=False, action="store_true",
+                            help="Run pipeline in test mode")
+
 
 def _add_run_deployment_sub_parser(subparsers):
     parser_run = subparsers.add_parser('run-deployment',
                                        help='Run mlpiper deployment. Note, this is an internal option.')
     parser_run.add_argument('-d', '--deployment-dir', default=None, required=True,
                             help="Directory containing deployed pipeline")
+
+    parser_run.add_argument('--test-mode', default=False, required=False, action="store_true",
+                            help="Run pipeline in test mode")
 
 
 def _add_deps_sub_parser(subparsers):
@@ -151,7 +157,8 @@ def main(bin_dir=None):
             .pipeline(options.pipeline if options.pipeline else options.file) \
             .use_color(not options.no_color) \
             .skip_mlpiper_deps_install(options.skip_mlpiper_deps) \
-            .force(options.force)
+            .force(options.force) \
+            .test_mode(options.test_mode)
 
         if options.input_model:
             ml_piper.input_model(options.input_model)
@@ -165,7 +172,10 @@ def main(bin_dir=None):
             ml_piper.run_deployment()
 
     elif options.subparser_name in ("run-deployment"):
-        ml_piper = MLPiper(options).deployment_dir(options.deployment_dir).skip_mlpiper_deps_install(True)
+        ml_piper = MLPiper(options) \
+            .deployment_dir(options.deployment_dir) \
+            .skip_mlpiper_deps_install(True) \
+            .test_mode(options.test_mode)
         ml_piper.run_deployment()
 
     elif options.subparser_name in ("deps"):
